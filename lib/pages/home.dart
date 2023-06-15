@@ -1,9 +1,9 @@
+import 'package:db_sqlite_t11/helpers/dbhelper.dart';
+import 'package:db_sqlite_t11/pages/entryform.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../models/item.dart';
-import '../sql/sqlhelper.dart';
-import 'entryform.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -24,42 +24,54 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Daftar Item'),
+      appBar: AppBar(
+        title: Text(
+          'Daftar Item',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        body: Column(
-          children: [
-            Expanded(
-              child: createListView(),
-            ),
-            Container(
-              alignment: Alignment.bottomCenter,
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  child: const Text('Tambah Item'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueGrey,
-                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const EntryForm(),
-                      ),
-                    ).then((value) {
-                      updateListView();
-                    });
-                  },
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: createListView(),
+          ),
+          Container(
+            alignment: Alignment.bottomCenter,
+            padding: EdgeInsets.all(16),
+            child: ElevatedButton(
+              child: Text(
+                'Tambah Item',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
-            )
-          ],
-        ));
+              style: ElevatedButton.styleFrom(
+                primary: Colors.red,
+                padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const EntryForm(),
+                  ),
+                ).then((value) {
+                  updateListView();
+                });
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   ListView createListView() {
@@ -78,12 +90,18 @@ class _HomeState extends State<Home> {
                   itemList[index].name,
                   style: textStyle,
                 ),
-                subtitle: Text('Harga: ${itemList[index].price.toString()}'),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Harga: ${itemList[index].price.toString()}'),
+                    Text('Stok: ${itemList[index].stok.toString()}'),
+                    Text('Kode Barang: ${itemList[index].kodeBarang}'),
+                  ],
+                ),
                 trailing: GestureDetector(
                   child: const Icon(Icons.delete),
                   onTap: () async {
-                    await SQLHelper.deleteItem(itemList[index].id);
-                    updateListView();
+                    deleteItem(itemList[index].id);
                   },
                 ),
                 onTap: () async {
@@ -108,12 +126,12 @@ class _HomeState extends State<Home> {
   void updateListView() {
     final Future<Database> dbFuture = SQLHelper.db();
     dbFuture.then((database) {
-      // TODO: get all item from DB
       Future<List<Item>> itemListFuture = SQLHelper.getItemList();
       itemListFuture.then((itemList) {
         setState(() {
           this.itemList = itemList;
           count = itemList.length;
+          print(count.toString());
         });
       });
     });
